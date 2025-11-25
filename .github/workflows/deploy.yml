@@ -15,10 +15,25 @@ jobs:
         uses: actions/checkout@v3
       
       - name: Validate required secrets
+        env:
+          SSH_KEY_PRESENT: ${{ secrets.SSH_PRIVATE_KEY != '' }}
+          HOST_PRESENT: ${{ secrets.EC2_HOST != '' }}
+          USER_PRESENT: ${{ secrets.EC2_USER != '' }}
         run: |
-          echo "Checking if required secrets are configured..."
-          # This step will fail if secrets are not properly set during actual usage
-          echo "Validation passed - proceeding with deployment"
+          echo "Checking secret configuration..."
+          if [ "$SSH_KEY_PRESENT" = "false" ]; then
+            echo "::error::Secret SSH_PRIVATE_KEY is not set in GitHub Repository Settings!"
+            exit 1
+          fi
+          if [ "$HOST_PRESENT" = "false" ]; then
+            echo "::error::Secret EC2_HOST is not set in GitHub Repository Settings!"
+            exit 1
+          fi
+          if [ "$USER_PRESENT" = "false" ]; then
+            echo "::error::Secret EC2_USER is not set in GitHub Repository Settings!"
+            exit 1
+          fi
+          echo "All required secrets are detected."
       
       - name: Setup SSH key
         env:
