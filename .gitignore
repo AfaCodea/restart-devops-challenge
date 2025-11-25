@@ -9,8 +9,8 @@ terraform.tfvars
 # SSH Keys
 restart-devops
 restart-devops-correct.pub
-*.pem/
-*.key/
+*.pem
+*.key
 
 # AWS Credentials
 .aws/
