@@ -191,8 +191,89 @@ Setelah `terraform apply`, Anda akan mendapatkan:
    - Commit & push ke branch `main`
    - Cek GitHub Actions tab untuk melihat deployment progress
 
+## ⚠️ Important Notes
+
+### User Data Behavior
+**user_data hanya berjalan saat pembuatan instance pertama kali.** Jika Anda mengubah user_data script, perubahan tidak akan otomatis diterapkan pada instance yang sudah running.
+
+**Untuk menerapkan perubahan user_data:**
+
+```bash
+# Option 1: Taint instance (akan recreate instance)
+terraform taint aws_instance.web_server
+terraform apply
+
+# Option 2: Destroy dan recreate
+terraform destroy
+terraform apply
+```
+
+⚠️ **Warning**: Kedua cara di atas akan **menghapus dan membuat ulang** EC2 instance, sehingga:
+- Public IP akan berubah
+- Data di instance akan hilang
+- Downtime akan terjadi
+
+### Architecture Compatibility
+Pastikan **AMI dan instance type memiliki arsitektur yang sama**:
+- **x86_64 (Intel/AMD)**: t2.micro, t3.micro, m5.large, dll
+- **arm64 (Graviton)**: t4g.micro, m6g.large, dll
+
+Konfigurasi saat ini menggunakan:
+- AMI: Amazon Linux 2 (x86_64)
+- Instance Type: t3.micro (x86_64)
+
+### Security Best Practices
+
+1. **Credentials Management**
+   - ❌ **JANGAN** simpan token/credentials di repository
+   - ✅ Gunakan **AWS Secrets Manager** atau **SSM Parameter Store** untuk produksi
+   - ✅ Gunakan **IAM roles** untuk EC2 instance daripada hardcode credentials
+
+2. **Security Group Configuration**
+   - Konfigurasi saat ini membuka port 22 (SSH) dan 80 (HTTP) untuk **0.0.0.0/0** (semua IP)
+   - ⚠️ **Untuk produksi**, batasi CIDR block ke IP spesifik:
+   
+   ```hcl
+   ingress {
+     description = "SSH from my IP only"
+     from_port   = 22
+     to_port     = 22
+     protocol    = "tcp"
+     cidr_blocks = ["YOUR_IP/32"]  # Ganti dengan IP Anda
+   }
+   ```
+
+3. **Terraform State**
+   - Terraform state berisi informasi sensitif
+   - Untuk produksi, gunakan **remote backend** (S3 + DynamoDB)
+   - Jangan commit file `.tfstate` ke Git
+
+### Updating Web Content
+
+Untuk update web content **tanpa recreate instance**, gunakan salah satu cara:
+
+**Option 1: Manual SSH**
+```bash
+ssh -i restart-devops ec2-user@YOUR_EC2_IP
+sudo nano /var/www/html/index.html
+sudo systemctl restart httpd
+```
+
+**Option 2: GitHub Actions** (Recommended)
+- Edit `hello.html` di repository
+- Commit & push ke branch `main`
+- GitHub Actions akan otomatis deploy
+
+**Option 3: SCP**
+```bash
+scp -i restart-devops hello.html ec2-user@YOUR_EC2_IP:/tmp/
+ssh -i restart-devops ec2-user@YOUR_EC2_IP "sudo cp /tmp/hello.html /var/www/html/index.html"
+```
+
 ## 📚 Resources
 
 - [Terraform AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
 - [AWS CLI Documentation](https://docs.aws.amazon.com/cli/)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
+- [AWS Secrets Manager](https://docs.aws.amazon.com/secretsmanager/)
+- [Terraform Remote State](https://developer.hashicorp.com/terraform/language/state/remote)

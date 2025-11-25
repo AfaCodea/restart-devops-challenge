@@ -15,6 +15,8 @@ data "aws_ami" "amazon_linux_2" {
 }
 
 # Security Group untuk EC2
+# WARNING: Untuk produksi, batasi cidr_blocks ke IP spesifik (contoh: ["YOUR_IP/32"])
+# Konfigurasi saat ini membuka akses ke semua IP (0.0.0.0/0) untuk development
 resource "aws_security_group" "web_server_sg" {
   name        = "restart-web-server-sg"
   description = "Security group untuk web server - mengizinkan HTTP dan SSH"
@@ -25,7 +27,7 @@ resource "aws_security_group" "web_server_sg" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"]  # TODO: Batasi untuk produksi
   }
 
   # Ingress rule untuk SSH (port 22)
@@ -34,7 +36,7 @@ resource "aws_security_group" "web_server_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"]  # TODO: Batasi untuk produksi
   }
 
   # Egress rule - mengizinkan semua traffic keluar
@@ -60,6 +62,8 @@ resource "aws_instance" "web_server" {
   vpc_security_group_ids = [aws_security_group.web_server_sg.id]
 
   # User data untuk setup web server
+  # IMPORTANT: user_data hanya berjalan saat instance pertama kali dibuat
+  # Untuk apply perubahan user_data: terraform taint aws_instance.web_server && terraform apply
   user_data = <<-EOF
               #!/bin/bash
               # Update sistem
