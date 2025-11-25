@@ -14,41 +14,36 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       
+      # Perbaikan 1: Validasi yang sebenarnya
       - name: Validate required secrets
         env:
-          SSH_KEY_PRESENT: ${{ secrets.SSH_PRIVATE_KEY != '' }}
-          HOST_PRESENT: ${{ secrets.EC2_HOST != '' }}
-          USER_PRESENT: ${{ secrets.EC2_USER != '' }}
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          HOST: ${{ secrets.EC2_HOST }}
+          USER: ${{ secrets.EC2_USER }}
         run: |
-          echo "Checking secret configuration..."
-          if [ "$SSH_KEY_PRESENT" = "false" ]; then
-            echo "::error::Secret SSH_PRIVATE_KEY is not set in GitHub Repository Settings!"
+          if [[ -z "$SSH_KEY" || -z "$HOST" || -z "$USER" ]]; then
+            echo "Error: One or more secrets (SSH_PRIVATE_KEY, EC2_HOST, EC2_USER) are missing."
             exit 1
           fi
-          if [ "$HOST_PRESENT" = "false" ]; then
-            echo "::error::Secret EC2_HOST is not set in GitHub Repository Settings!"
-            exit 1
-          fi
-          if [ "$USER_PRESENT" = "false" ]; then
-            echo "::error::Secret EC2_USER is not set in GitHub Repository Settings!"
-            exit 1
-          fi
-          echo "All required secrets are detected."
+          echo "All secrets are present."
       
+      # Perbaikan 2: Setup SSH yang lebih robust menangani baris baru
       - name: Setup SSH key
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
-          # Setup SSH
           mkdir -p ~/.ssh
+          # Menambahkan newline di akhir untuk memastikan format valid
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          # Pastikan ada baris kosong di akhir file key (syarat format PEM)
+          echo "" >> ~/.ssh/id_rsa 
           chmod 600 ~/.ssh/id_rsa
           
-          # Add EC2 host to known_hosts
+          # Add EC2 host to known_hosts to avoid interactive prompt
           ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts 2>/dev/null || true
           
-          echo "SSH setup completed successfully"
+          echo "SSH setup completed"
       
       - name: Deploy to EC2
         env:
@@ -59,10 +54,26 @@ jobs:
           scp -i ~/.ssh/id_rsa hello.html ${EC2_USER}@${EC2_HOST}:/tmp/hello.html
           
           # SSH to EC2 and update web content
+          # Perbaikan 3: Menggunakan 'nginx' bukan 'httpd'
           ssh -i ~/.ssh/id_rsa ${EC2_USER}@${EC2_HOST} << 'EOF'
-            sudo cp /tmp/hello.html /var/www/html/index.html
-            sudo chmod 644 /var/www/html/index.html
-            sudo systemctl restart httpd
+            # Pastikan folder tujuan ada
+            sudo mkdir -p /var/www/html/
+            
+            # Pindahkan file
+            sudo cp /tmp/hello.html /var/www/html/index.nginx-debian.html
+            
+            # Set permission
+            sudo chmod 644 /var/www/html/index.nginx-debian.html
+            
+            # Restart NGINX (Sesuai Terraform Anda)
+            if systemctl is-active --quiet nginx; then
+                sudo systemctl reload nginx
+                echo "Nginx reloaded."
+            else
+                sudo systemctl start nginx
+                echo "Nginx started."
+            fi
+            
             echo "Deployment completed successfully!"
           EOF
       
@@ -70,6 +81,7 @@ jobs:
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
-          echo "Waiting for server to restart..."
+          echo "Waiting for server to ensure content is served..."
           sleep 5
-          curl -f "http://$EC2_HOST" || echo "Warning: Could not verify deployment"
+          # Curl dengan timeout agar tidak hang
+          curl -m 10 -f "http://$EC2_HOST" || echo "Warning: Could not verify deployment, check Security Group inbound rules."
