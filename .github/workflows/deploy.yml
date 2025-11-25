@@ -41,15 +41,23 @@ jobs:
           EC2_HOST: ${{ secrets.EC2_HOST }} 
           EC2_USER: ${{ secrets.EC2_USER }}
         run: |
-          # Debugging: Cek apakah variable terbaca (Opsional, hapus nanti)
+          # Debugging
           echo "Connecting to $EC2_USER @ $EC2_HOST"
 
-          # Copy file
+          if [ -z "$EC2_HOST" ] || [ -z "$EC2_USER" ]; then
+            echo "::error::EC2_HOST or EC2_USER secrets are empty. Please configure them in GitHub Repository Settings."
+            exit 1
+          fi
+
+          # Copy hello.html to EC2
           scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa hello.html ${EC2_USER}@${EC2_HOST}:/tmp/hello.html
           
-          # SSH command
+          # SSH to EC2 and update web content
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${EC2_USER}@${EC2_HOST} << 'EOF'
-            # ... sisa script Anda
+            sudo cp /tmp/hello.html /var/www/html/index.html
+            sudo chmod 644 /var/www/html/index.html
+            sudo systemctl restart httpd
+            echo "Deployment completed successfully!"
           EOF
       
       - name: Verify deployment
