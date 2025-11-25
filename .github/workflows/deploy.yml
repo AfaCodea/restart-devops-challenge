@@ -38,8 +38,8 @@ jobs:
       - name: Deploy to EC2
         env:
           # ANDA HARUS MENGHUBUNGKAN SECRET KE VARIABLE DI SINI
-          EC2_HOST: ${{ secrets.EC2_HOST }} 
-          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_HOST: ${{ secrets.EC2_HOST || vars.EC2_HOST }} 
+          EC2_USER: ${{ secrets.EC2_USER || vars.EC2_USER }}
         run: |
           # Debugging
           echo "Connecting to $EC2_USER @ $EC2_HOST"
