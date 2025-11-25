@@ -23,7 +23,7 @@ jobs:
       - name: Setup SSH key
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_HOST: ${{ secrets.EC2_HOST || vars.EC2_HOST }}
         run: |
           # Setup SSH
           mkdir -p ~/.ssh
@@ -62,7 +62,7 @@ jobs:
       
       - name: Verify deployment
         env:
-          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_HOST: ${{ secrets.EC2_HOST || vars.EC2_HOST }}
         run: |
           echo "Waiting for server to restart..."
           sleep 5
