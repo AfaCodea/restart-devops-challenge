@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Restart DevOps Challenge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 60px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #555;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            margin: 10px 0;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: left;
+            border-radius: 8px;
+        }
+
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .info-box p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .footer {
+            margin-top: 40px;
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        .icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">🚀</div>
+        <h1>Halo Agil Prasunza!</h1>
+        <p class="subtitle">Selamat datang di AWS Restart DevOps Challenge</p>
+        
+        <div class="badge">✅ Server Berhasil Di-Deploy!</div>
+        
+        <div class="info-box">
+            <h3>📋 Informasi Deployment</h3>
+            <p><strong>Platform:</strong> Amazon Linux 2023 (kernel-6.1)</p>
+            <p><strong>AMI ID:</strong> ami-0559665adb3f0e333</p>
+            <p><strong>Web Server:</strong> Apache HTTP Server (httpd)</p>
+            <p><strong>Infrastructure as Code:</strong> Terraform</p>
+        </div>
+
+        <div class="info-box">
+            <h3>🎯 Challenge Completed</h3>
+            <p>Website ini di-deploy menggunakan Terraform dengan user_data script yang otomatis menginstall dan mengkonfigurasi web server.</p>
+        </div>
+
+        <div class="footer">
+            <p>Powered by AWS • Deployed with Terraform</p>
+            <p>© 2025 AWS Restart DevOps Challenge</p>
+        </div>
+    </div>
+</body>
+</html>
