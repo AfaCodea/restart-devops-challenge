@@ -1,8 +1,3 @@
-provider "aws" {
-  region  = "ap-southeast-3"
-  profile = "restart"
-}
-
 data "aws_ami" "amazon-linux" {
   most_recent = true
 
@@ -39,9 +34,10 @@ resource "aws_security_group" "challenge_sg" {
 }
 
 resource "aws_instance" "challenge" {
-  ami                    = data.aws_ami.amazon-linux.id
-  instance_type          = "t3.micro"
-  vpc_security_group_ids = [aws_security_group.challenge_sg.id]
+  ami                       = data.aws_ami.amazon-linux.id
+  instance_type             = "t3.micro"
+  vpc_security_group_ids    = [aws_security_group.challenge_sg.id]
+  user_data_replace_on_change = true
 
   tags = {
     Name = "AWSrestart"
@@ -49,16 +45,27 @@ resource "aws_instance" "challenge" {
 
   user_data = <<-EOF
               #!/bin/bash
-              yum update -y
-              yum install -y httpd git
+              yum install -y httpd
               systemctl start httpd
               systemctl enable httpd
-              cd /var/www/html
-              sudo chown ec2-user .
-              git clone https://github.com/AfaCodea/restart-devops-challenge.git
-              rm -rf  /var/www/html/index.html
-              sudo cp restart-devops-challenge/hello.html /var/www/html/index.html
-              sudo rm -rf restart-devops-challenge
+              
+              # Create index.html directly
+              cat > /var/www/html/index.html <<'HTML'
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Hello World!</title>
+</head>
+
+<body>
+    <h1>Halo Agil Prasunza!</h1>
+    <p>Deploy ke 2 berhasil menggunakan user_data.</p>
+</body>
+
+</html>
+Test deployment 3
+HTML
               EOF
 }
 
