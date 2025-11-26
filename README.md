@@ -1,104 +1,79 @@
-# AWS Restart DevOps Challenge
+IaC menggunakan Terraform
+Infrastructure as Code (IaC) adalah teknik untuk mengelola resource cloud menggunakan kode. Terraform adalah salah satu alat untuk implementasi IaC.
 
-Project untuk deployment web server di EC2 menggunakan Terraform sebagai Infrastructure as Code (IaC).
+1. Buat IAM user
+AWS Console -> IAM -> Users -> Create user
 
-## 📋 Struktur Proyek
+User name: restart
+Uncheck "Access user to management console"
+Next → Attach policies directly → pilih AmazonEC2FullAccess
+Create User
+2. Buat programmatic access untuk user
+Pilih user restart
+Create access key (kanan atas)
+Pilih CLI
+Check "I understand ...."
+Download .csv file
+Done
+Setup akun IAM yang barusan dibuat ke AWS CLI local
+Buka command prompt di komputer lokal
+Pastikan AWS CLI terinstall: sh aws --version
+Jika sudah muncul versi maka anda bisa lanjut, jika belum install dulu. Panduan install: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+Di command prompt ketik sh aws configure --profile restart" 
+Isi konfigurasi sesuai .csv file di poin sebelumnya
+Important! cek konfigurasi profile "cat ~/.aws/credentials". Pastikan konfigurasi profile sudah tersimpan di file tersebut (terdapat nama profile dan konfigurasi token).
+4. Install Terraform
+Panduan: https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli Verifikasi: terraform --version
 
-```
-restart-devops-challenge/
-├── main.tf          # Definisi EC2, security group, dan outputs
-├── terraform.tf     # Required providers dan versi Terraform
-├── user_data.sh     # Script bootstrap untuk EC2 instance
-└── hello.html       # File HTML yang akan di-deploy
-```
-
-## 🔧 Spesifikasi Teknis
-
-- **AMI**: Amazon Linux 2023 kernel-6.1 (`ami-0559665adb3f0e333`)
-- **Instance Type**: t3.micro
-- **Region**: ap-southeast-3 (Jakarta)
-- **Web Server**: Apache HTTP Server (httpd)
-- **IaC Tool**: Terraform
-
-## 🚀 Cara Deployment
-
-### 1. Inisialisasi Terraform
-
-```bash
+5. Struktur proyek
+main.tf → definisi EC2, security group, user_datasrc
+terraform.tf → required providers / versi library IaC
+hello.html → file html yang akan di deploy di server EC2
+6. Menjalankan Terraform
 terraform init
-```
-
-### 2. Review Perubahan
-
-```bash
 terraform plan
-```
-
-### 3. Deploy Infrastructure
-
-```bash
 terraform apply
-```
+Setelah apply, console akan mengeluarkan public IP. Anda dapat mengeluarkan public IP lagi dengan command:
 
-### 4. Akses Website
-
-Setelah deployment selesai, Terraform akan menampilkan public IP address:
-
-```
-Outputs:
-instance_public_ip = "x.x.x.x"
-```
-
-Akses website di browser: `http://x.x.x.x`
-
-## 📦 Komponen Utama
-
-### main.tf
-- **Provider AWS**: Konfigurasi region dan profile
-- **Data Source**: AMI Amazon Linux 2023
-- **Security Group**: Mengizinkan traffik HTTP (port 80) dan SSH (port 22)
-- **EC2 Instance**: Instance dengan user_data untuk setup otomatis
-- **Output**: Public IP address instance
-
-### terraform.tf
-- Required Terraform version: >= 1.0
-- AWS Provider version: ~> 5.0
-
-### user_data.sh
-Script yang dijalankan saat instance pertama kali dibuat:
-1. Update system packages
-2. Install Apache web server
-3. Deploy hello.html sebagai index.html
-4. Start dan enable Apache service
-
-### hello.html
-Landing page yang menampilkan informasi deployment dengan design modern dan responsive.
-
-## 🔐 Security Group Rules
-
-**Inbound:**
-- Port 22 (SSH): 0.0.0.0/0
-- Port 80 (HTTP): 0.0.0.0/0
-
-**Outbound:**
-- All traffic: 0.0.0.0/0
-
-> ⚠️ **Note**: Untuk production, sebaiknya batasi SSH access hanya dari IP tertentu.
-
-## 🧹 Cleanup
-
-Untuk menghapus semua resources yang telah dibuat:
-
-```bash
+terraform output instance_public_ip
+7. Menghapus resource
 terraform destroy
-```
+(Bonus) Implementasi CI/CD menggunakan GitHub Actions
+CI/CD otomatis menghubungkan environment development dan production. Berikut langkah singkat:
 
-## 📝 Notes
+Buat SSH key di lokal:
+ssh-keygen -t rsa -b 4096 -C "email-github@gmail.com"
+beri nama key
+kosongkan passphrase
+Anda akan mendapatkan 2 key, key dan key.pub. key merupakan private key, dan key.pub merupakan pubic key.
 
-- Instance akan otomatis menginstall dan mengkonfigurasi web server saat pertama kali dibuat
-- File `hello.html` di-embed langsung ke dalam user_data script
-- Perubahan pada `hello.html` akan trigger replacement instance (karena `user_data_replace_on_change = true`)
+Daftarkan public key di EC2: Konek ssh ec2 via aws console instance connect, jalankan kode berikut:
+cd ~/.ssh
+nano authorized_keys
+exit
+# tambahkan isi public key ke file authorized_keys di server menggunakan nano
+Uji SSH via local console:
+ssh -i private_key_name_path ec2-user@<public_ip>
+pastikan ssh connected sebelum masuk ke langkah berikutnya.
 
-## 👤 Author
+Buat environment & secrets di GitHub:
+Repository → Settings → Environments → New environment AWSRestartDeployer
+Tambahkan secrets:
+EC2_HOST = public IP EC2
+EC2_SSH_KEY = private key
+EC2_USER = ec2-user (untuk AWS Linux)
+Tambahkan workflow deploy di .github/workflows/deploy.yml (copy dari repo).
+Uji dengan push:
+git add .
+git commit -m "Added: Workflows action"
+git push origin main
+Setelah sukses, update hello.html dan push ulang untuk melihat auto-deploy (langkah 6).
+Lihat workflow yang berjalan melalui github -> repository_anda -> actions.
+Catatan penting:
 
-AWS Restart - DevOps Challenge 2025
+user_data hanya berjalan saat pembuatan instance. Untuk menerapkan perubahan user_data, tandai ulang instance:
+terraform taint aws_instance.challenge
+terraform apply
+Pastikan AMI dan instance type punya arsitektur yang sama (x86_64 vs arm64).
+Jangan simpan token/credential sensitif di repo. Gunakan Secrets Manager atau SSM Parameter untuk produksi.
+Security group konfigurasi membuka port 22 (SSH) dan 80 (HTTP) — sesuaikan CIDR untuk keamanan.
