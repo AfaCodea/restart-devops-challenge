@@ -31,13 +31,6 @@ resource "aws_security_group" "challenge_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ingress {
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   egress {
     from_port   = 0
     to_port     = 0
@@ -50,7 +43,6 @@ resource "aws_instance" "challenge" {
   ami                    = data.aws_ami.amazon_linux_2023.id
   instance_type          = "t3.micro"
   vpc_security_group_ids = [aws_security_group.challenge_sg.id]
-  key_name               = "restart-challenge-key"
 
   tags = {
     Name = "AWSrestart"
@@ -58,54 +50,15 @@ resource "aws_instance" "challenge" {
 
   user_data = <<-EOF
               #!/bin/bash
-              # Update system
               yum update -y
-              
-              # Install git
-              yum install -y git
-              
-              # Install Node.js 20.x (LTS)
-              curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
-              yum install -y nodejs
-              
-              # Install PM2 globally
-              npm install -g pm2
-              
-              # Clone repository
-              cd /home/ec2-user
+              yum install -y httpd git
+              systemctl start httpd
+              systemctl enable httpd
+              cd /var/www/html
+              sudo chown ec2-user .
               git clone https://github.com/AfaCodea/restart-devops-challenge.git
-              cd restart-devops-challenge/webshoesstore
-              
-              # Install dependencies and build
-              npm install
-              npm run build
-              
-              # Start Next.js with PM2
-              pm2 start npm --name "webshoesstore" -- start
-              pm2 startup systemd -u ec2-user --hp /home/ec2-user
-              pm2 save
-              
-              # Setup nginx as reverse proxy
-              yum install -y nginx
-              cat > /etc/nginx/conf.d/nextjs.conf <<'NGINX'
-              server {
-                  listen 80;
-                  server_name _;
-                  
-                  location / {
-                      proxy_pass http://localhost:3000;
-                      proxy_http_version 1.1;
-                      proxy_set_header Upgrade \$http_upgrade;
-                      proxy_set_header Connection 'upgrade';
-                      proxy_set_header Host \$host;
-                      proxy_cache_bypass \$http_upgrade;
-                  }
-              }
-              NGINX
-              
-              # Start nginx
-              systemctl start nginx
-              systemctl enable nginx
+              cp /var/www/html/restart-devops-challenge/hello.html /var/www/html/index.html
+              sudo rm -rf restart-devops-challenge
               EOF
 
   user_data_replace_on_change = true

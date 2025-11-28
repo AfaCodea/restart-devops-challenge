@@ -37,21 +37,6 @@ crash.*.log
 # SSH keys
 github
 github.pub
-*.pem
 
 # Terraform lock file
-.terraform.lock.hcl
-
-# Webshoesstore - ignore dev files, keep build output
-webshoesstore/node_modules/
-webshoesstore/.DS_Store
-webshoesstore/.eslintrc.json
-webshoesstore/.git
-webshoesstore/.gitignore
-webshoesstore/README.md
-webshoesstore/RESPONSIVE_OPTIMIZATION.md
-webshoesstore/UPGRADE_NOTES.md
-webshoesstore/next-env.d.ts
-webshoesstore/tsconfig.tsbuildinfo
-webshoesstore/.next/cache/
-webshoesstore/.next/dev/
+*.terraform.lock.hcl
