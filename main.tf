@@ -48,9 +48,18 @@ resource "aws_instance" "challenge" {
     Name = "AWSrestart"
   }
 
-  user_data = templatefile("${path.module}/user_data.sh", {
-    html_content = file("${path.module}/hello.html")
-  })
+  user_data = <<-EOF
+              #!/bin/bash
+              yum update -y
+              yum install -y httpd git
+              systemctl start httpd
+              systemctl enable httpd
+              cd /var/www/html
+              sudo chown ec2-user .
+              git clone https://github.com/AfaCodea/restart-devops-challenge.git
+              cp /var/www/html/restart-devops-challenge/hello.html /var/www/html/index.html
+              sudo rm -rf restart-devops-challenge
+              EOF
 
   user_data_replace_on_change = true
 }

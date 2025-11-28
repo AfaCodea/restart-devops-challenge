@@ -16,16 +16,16 @@ crash.*.log
 *.tfvars
 *.tfvars.json
 
-# Ignore override files as they are usually used to override resources locally and so
-# are not checked in
-override.tf
-override.tf.json
-*_override.tf
-*_override.tf.json
+# # Ignore override files as they are usually used to override resources locally and so
+# # are not checked in
+# override.tf
+# override.tf.json
+# *_override.tf
+# *_override.tf.json
 
-# Ignore CLI configuration files
-.terraformrc
-terraform.rc
+# # Ignore CLI configuration files
+# .terraformrc
+# terraform.rc
 
 # Mac system files
 .DS_Store
@@ -33,3 +33,10 @@ terraform.rc
 # Editor directories
 .idea/
 .vscode/
+
+# SSH keys
+github
+github.pub
+
+# Terraform lock file
+.terraform.lock.hcl
