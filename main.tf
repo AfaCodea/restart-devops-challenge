@@ -56,7 +56,7 @@ resource "aws_instance" "challenge" {
               systemctl enable httpd
               cd /var/www/html
               sudo chown ec2-user .
-              git clone https://github.com/AfaCodea/restart-devops-challenge.git
+              git clone git@github.com:AfaCodea/restart-devops-challenge.git
               cp /var/www/html/restart-devops-challenge/hello.html /var/www/html/index.html
               sudo rm -rf restart-devops-challenge
               EOF
