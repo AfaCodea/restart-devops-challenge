@@ -50,6 +50,7 @@ resource "aws_instance" "challenge" {
   ami                    = data.aws_ami.amazon_linux_2023.id
   instance_type          = "t3.micro"
   vpc_security_group_ids = [aws_security_group.challenge_sg.id]
+  key_name               = "restart-challenge-key"
 
   tags = {
     Name = "AWSrestart"

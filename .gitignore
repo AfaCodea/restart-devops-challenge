@@ -37,6 +37,7 @@ crash.*.log
 # SSH keys
 github
 github.pub
+*.pem
 
 # Terraform lock file
 .terraform.lock.hcl
