@@ -26,7 +26,7 @@ jobs:
               sudo chown -R ec2-user:ec2-user /var/www/html
               cd /var/www/html
               sudo rm -rf restart-devops-challenge
-              git clone https://github.com/AfaCodea/restart-devops-challenge.git
+              git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/AfaCodea/restart-devops-challenge.git
               cp /var/www/html/restart-devops-challenge/hello.html /var/www/html/index.html
               sudo rm -rf restart-devops-challenge
           EOF
