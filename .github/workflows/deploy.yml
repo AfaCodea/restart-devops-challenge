@@ -24,6 +24,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
               cd /var/www/html
               sudo rm -rf restart-devops-challenge
+              export GIT_TERMINAL_PROMPT=0
               git clone https://github.com/AfaCodea/restart-devops-challenge.git
               cp /var/www/html/restart-devops-challenge/hello.html /var/www/html/index.html
               sudo rm -rf restart-devops-challenge
